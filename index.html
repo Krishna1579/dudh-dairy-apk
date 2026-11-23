@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>डिजिटल दूध डेअरी</title>
+    <style>
+        :root {
+            --primary: #0284c7;
+            --primary-dark: #0369a1;
+            --bg: #f0f9ff;
+            --card: #ffffff;
+            --text: #0f172a;
+            --success: #16a34a;
+            --danger: #dc2626;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+        body { background: var(--bg); color: var(--text); padding-bottom: 75px; }
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white; padding: 16px; text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15); position: sticky; top: 0; z-index: 100;
+        }
+        header h1 { font-size: 1.25rem; }
+        header p { font-size: 0.8rem; opacity: 0.9; margin-top: 2px; }
+        .container { padding: 14px; max-width: 600px; margin: auto; }
+        .card {
+            background: var(--card); border-radius: 12px; padding: 16px;
+            margin-bottom: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+        }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+        .stat-box {
+            background: white; padding: 14px; border-radius: 12px;
+            border-left: 4px solid var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .stat-box h3 { font-size: 0.8rem; color: #64748b; }
+        .stat-box p { font-size: 1.3rem; font-weight: bold; color: var(--text); margin-top: 4px; }
+        label { display: block; font-size: 0.85rem; font-weight: 600; margin: 10px 0 4px; color: #334155; }
+        input, select {
+            width: 100%; padding: 11px; border: 1px solid #cbd5e1;
+            border-radius: 8px; font-size: 1rem; background: #f8fafc;
+        }
+        input:focus, select:focus { outline: none; border-color: var(--primary); background: #fff; }
+        .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        button {
+            width: 100%; padding: 12px; border: none; border-radius: 8px;
+            font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 14px;
+            background: var(--primary); color: white; transition: 0.2s;
+        }
+        button:active { transform: scale(0.98); }
+        .btn-success { background: var(--success); }
+        .btn-outline { background: transparent; border: 1.5px solid var(--primary); color: var(--primary); }
+        .btn-sm { padding: 6px 10px; font-size: 0.8rem; width: auto; margin-top: 0; }
+        .list-item {
+            border-bottom: 1px solid #e2e8f0; padding: 12px 0;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .list-item:last-child { border-bottom: none; }
+        .badge {
+            display: inline-block; padding: 2px 8px; border-radius: 12px;
+            font-size: 0.75rem; font-weight: 600; background: #e0f2fe; color: var(--primary-dark);
+        }
+        .nav-bar {
+            position: fixed; bottom: 0; left: 0; right: 0; background: white;
+            display: flex; border-top: 1px solid #e2e8f0; z-index: 100;
+        }
+        .nav-item {
+            flex: 1; text-align: center; padding: 10px 4px; font-size: 0.78rem;
+            color: #64748b; cursor: pointer; font-weight: 600;
+        }
+        .nav-item.active { color: var(--primary); border-top: 3px solid var(--primary); }
+        .section { display: none; }
+        .section.active { display: block; }
+        .total-preview {
+            background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46;
+            padding: 10px; border-radius: 8px; margin-top: 12px; text-align: center; font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>🥛 डिजिटल दूध डेअरी</h1>
+    <p id="todayDate"></p>
+</header>
+
+<div class="container">
+    <!-- १. संकलन (Milk Entry) -->
+    <div id="sec-entry" class="section active">
+        <div class="stats-grid">
+            <div class="stat-box">
+                <h3>आजचे एकूण दूध</h3>
+                <p id="todayLiters">0.0 L</p>
+            </div>
+            <div class="stat-box" style="border-left-color: #16a34a;">
+                <h3>आजची एकूण रक्कम</h3>
+                <p id="todayAmount">₹0</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 style="font-size: 1.05rem; margin-bottom: 8px;">नवीन दूध नोंद (Collection)</h2>
+            <label>शेतकरी निवडा</label>
+            <select id="farmerSelect"></select>
+
+            <div class="row">
+                <div>
+                    <label>वेळ (Shift)</label>
+                    <select id="shiftSelect">
+                        <option value="सकाळ">सकाळ (Morning)</option>
+                        <option value="संध्याकाळ">संध्याकाळ (Evening)</option>
+                    </select>
+                </div>
+                <div>
+                    <label>दूध (लिटर)</label>
+                    <input type="number" id="milkQty" step="0.1" placeholder="उदा. 5.5" oninput="calcTotal()">
+                </div>
+            </div>
+
+            <div class="row">
+                <div>
+                    <label>फॅट (Fat %)</label>
+                    <input type="number" id="milkFat" step="0.1" placeholder="उदा. 4.2" oninput="calcTotal()">
+                </div>
+                <div>
+                    <label>दर (₹ प्रति लिटर)</label>
+                    <input type="number" id="milkRate" step="0.5" placeholder="उदा. 38" oninput="calcTotal()">
+                </div>
+            </div>
+
+            <div class="total-preview" id="previewBox">एकूण रक्कम: ₹0.00</div>
+            <button onclick="saveEntry()">नोंद सेव्ह करा</button>
+        </div>
+
+        <div class="card">
+            <h2 style="font-size: 1.05rem; margin-bottom: 8px;">आजच्या नोंदी</h2>
+            <div id="todayList"></div>
+        </div>
+    </div>
+
+    <!-- २. शेतकरी यादी (Farmers) -->
+    <div id="sec-farmers" class="section">
+        <div class="card">
+            <h2 style="font-size: 1.05rem; margin-bottom: 8px;">नवीन शेतकरी जोडा</h2>
+            <label>शेतकऱ्याचे पूर्ण नाव</label>
+            <input type="text" id="fName" placeholder="उदा. संतोष पाटील">
+            <div class="row">
+                <div>
+                    <label>मोबाईल नंबर</label>
+                    <input type="tel" id="fPhone" placeholder="98XXXXXXXX">
+                </div>
+                <div>
+                    <label>प्रकार</label>
+                    <select id="fType">
+                        <option value="गाय">गाय (Cow)</option>
+                        <option value="म्हैस">म्हैस (Buffalo)</option>
+                    </select>
+                </div>
+            </div>
+            <button onclick="addFarmer()">शेतकरी सेव्ह करा</button>
+        </div>
+
+        <div class="card">
+            <h2 style="font-size: 1.05rem; margin-bottom: 8px;">नोंदणीकृत शेतकरी</h2>
+            <div id="farmersList"></div>
+        </div>
+    </div>
+
+    <!-- ३. हिशोब आणि रिपोर्ट (Reports) -->
+    <div id="sec-reports" class="section">
+        <div class="card">
+            <h2 style="font-size: 1.05rem; margin-bottom: 8px;">शेतकरीनिहाय एकूण हिशोब</h2>
+            <div id="summaryList"></div>
+            <button class="btn-success" onclick="exportCSV()">📥 सर्व हिशोब Excel (CSV) डाउनलोड करा</button>
+        </div>
+    </div>
+</div>
+
+<div class="nav-bar">
+    <div class="nav-item active" onclick="switchTab('entry', this)">🥛 संकलन</div>
+    <div class="nav-item" onclick="switchTab('farmers', this)">👨‍🌾 शेतकरी</div>
+    <div class="nav-item" onclick="switchTab('reports', this)">📊 हिशोब</div>
+</div>
+
+<script>
+    let farmers = JSON.parse(localStorage.getItem('dairy_farmers')) || [
+        { id: 1, name: 'रमेश शिंदे', phone: '', type: 'गाय' }
+    ];
+    let entries = JSON.parse(localStorage.getItem('dairy_entries')) || [];
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    document.getElementById('todayDate').innerText = 'तारीख: ' + new Date().toLocaleDateString('mr-IN');
+
+    function switchTab(tab, el) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.getElementById('sec-' + tab).classList.add('active');
+        el.classList.add('active');
+        renderAll();
+    }
+
+    function calcTotal() {
+        const qty = parseFloat(document.getElementById('milkQty').value) || 0;
+        const rate = parseFloat(document.getElementById('milkRate').value) || 0;
+        const total = (qty * rate).toFixed(2);
+        document.getElementById('previewBox').innerText = `एकूण रक्कम: ₹${total}`;
+    }
+
+    function addFarmer() {
+        const name = document.getElementById('fName').value.trim();
+        const phone = document.getElementById('fPhone').value.trim();
+        const type = document.getElementById('fType').value;
+        if (!name) return alert('कृपया शेतकऱ्याचे नाव टाका!');
+        farmers.push({ id: Date.now(), name, phone, type });
+        localStorage.setItem('dairy_farmers', JSON.stringify(farmers));
+        document.getElementById('fName').value = '';
+        document.getElementById('fPhone').value = '';
+        alert('शेतकरी यशस्वीरित्या जोडला गेला!');
+        renderAll();
+    }
+
+    function saveEntry() {
+        const farmerId = document.getElementById('farmerSelect').value;
+        const farmer = farmers.find(f => f.id == farmerId);
+        const shift = document.getElementById('shiftSelect').value;
+        const qty = parseFloat(document.getElementById('milkQty').value);
+        const fat = parseFloat(document.getElementById('milkFat').value) || 0;
+        const rate = parseFloat(document.getElementById('milkRate').value);
+
+        if (!farmer || !qty || !rate) return alert('कृपया सर्व माहिती योग्य भरा!');
+
+        const amount = parseFloat((qty * rate).toFixed(2));
+        entries.unshift({
+            id: Date.now(), date: todayStr, farmerId: farmer.id,
+            farmerName: farmer.name, phone: farmer.phone, shift, qty, fat, rate, amount
+        });
+        localStorage.setItem('dairy_entries', JSON.stringify(entries));
+        document.getElementById('milkQty').value = '';
+        document.getElementById('milkFat').value = '';
+        calcTotal();
+        renderAll();
+    }
+
+    function sendWhatsApp(entry) {
+        const msg = `*🥛 दूध संकलन पावती*\nतारीख: ${entry.date} (${entry.shift})\nशेतकरी: ${entry.farmerName}\nदूध: ${entry.qty} लिटर | फॅट: ${entry.fat}%\nदर: ₹${entry.rate}\n*एकूण रक्कम: ₹${entry.amount}*`;
+        const url = entry.phone
+            ? `https://wa.me/91${entry.phone}?text=${encodeURIComponent(msg)}`
+            : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+        window.open(url, '_blank');
+    }
+
+    function renderAll() {
+        // Dropdown
+        const sel = document.getElementById('farmerSelect');
+        sel.innerHTML = farmers.map(f => `<option value="${f.id}">${f.name} (${f.type})</option>`).join('');
+
+        // Farmers List
+        document.getElementById('farmersList').innerHTML = farmers.map(f => `
+            <div class="list-item">
+                <div><strong>${f.name}</strong><br><small style="color:#64748b;">${f.phone || 'नंबर नाही'}</small></div>
+                <span class="badge">${f.type}</span>
+            </div>
+        `).join('');
+
+        // Today Entries
+        const todayEntries = entries.filter(e => e.date === todayStr);
+        let tLiters = 0, tAmt = 0;
+        todayEntries.forEach(e => { tLiters += e.qty; tAmt += e.amount; });
+        document.getElementById('todayLiters').innerText = tLiters.toFixed(1) + ' L';
+        document.getElementById('todayAmount').innerText = '₹' + tAmt.toFixed(0);
+
+        document.getElementById('todayList').innerHTML = todayEntries.length ? todayEntries.map(e => `
+            <div class="list-item">
+                <div>
+                    <strong>${e.farmerName}</strong> <span class="badge">${e.shift}</span><br>
+                    <small>${e.qty} L × ₹${e.rate} (Fat: ${e.fat}%)</small>
+                </div>
+                <div style="text-align:right;">
+                    <strong style="color:#16a34a;">₹${e.amount}</strong><br>
+                    <button class="btn-outline btn-sm" onclick='sendWhatsApp(${JSON.stringify(e)})'>WhatsApp</button>
+                </div>
+            </div>
+        `).join('') : '<p style="color:#64748b; font-size:0.9rem;">आज अजून कोणतीही नोंद नाही.</p>';
+
+        // Summary Report
+        const summary = {};
+        entries.forEach(e => {
+            if (!summary[e.farmerName]) summary[e.farmerName] = { qty: 0, amount: 0 };
+            summary[e.farmerName].qty += e.qty;
+            summary[e.farmerName].amount += e.amount;
+        });
+        document.getElementById('summaryList').innerHTML = Object.keys(summary).length ? Object.entries(summary).map(([name, data]) => `
+            <div class="list-item">
+                <div><strong>${name}</strong><br><small>एकूण दूध: ${data.qty.toFixed(1)} लिटर</small></div>
+                <strong style="color:#0284c7; font-size:1.05rem;">₹${data.amount.toFixed(2)}</strong>
+            </div>
+        `).join('') : '<p style="color:#64748b;">डेटा उपलब्ध नाही.</p>';
+    }
+
+    function exportCSV() {
+        let csv = "Date,Farmer,Shift,Liters,Fat,Rate,Amount\n";
+        entries.forEach(e => {
+            csv += `${e.date},${e.farmerName},${e.shift},${e.qty},${e.fat},${e.rate},${e.amount}\n`;
+        });
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `Milk_Dairy_Report_${todayStr}.csv`;
+        a.click();
+    }
+
+    renderAll();
+</script>
+</body>
+</html>
