@@ -175,4 +175,509 @@
             color: var(--primary-dark);
             margin-bottom: 8px;
             border-bottom: 1.5px solid #e2e8f0;
-            padding-bottom
+            padding-bottom: 5px;
+        }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+        .stat-box {
+            background: white; padding: 12px; border-radius: 12px;
+            border-left: 5px solid var(--primary); box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+        .stat-box h3 { font-size: 0.9rem; font-weight: 600; color: #475569; }
+        .stat-box p { font-size: 1.45rem; font-weight: 700; color: var(--text); margin-top: 2px; }
+        label { display: block; font-size: 0.96rem; font-weight: 700; margin: 9px 0 3px; color: #1e293b; }
+        input, select {
+            width: 100%; padding: 9px 11px; border: 1.5px solid #cbd5e1;
+            border-radius: 8px; font-size: 1.02rem; font-weight: 600; background: #f8fafc;
+        }
+        input:focus, select:focus { outline: none; border-color: var(--primary); background: #fff; }
+        .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+        button {
+            width: 100%; padding: 11px; border: none; border-radius: 8px;
+            font-size: 1.05rem; font-weight: 700; cursor: pointer; margin-top: 12px;
+            background: var(--primary); color: white; transition: 0.2s;
+        }
+        button:active { transform: scale(0.98); }
+        .btn-success { background: var(--success); }
+        .btn-warning { background: var(--warning); }
+        .btn-danger { background: var(--danger); }
+        .btn-outline { background: transparent; border: 1.5px solid var(--primary); color: var(--primary); }
+        .btn-sm { padding: 4px 9px; font-size: 0.85rem; width: auto; margin-top: 3px; }
+        .list-item {
+            border-bottom: 1px solid #e2e8f0; padding: 10px 0;
+            display: flex; justify-content: space-between; align-items: center; gap: 8px;
+        }
+        .list-item:last-child { border-bottom: none; }
+        .badge {
+            display: inline-block; padding: 1px 8px; border-radius: 10px;
+            font-size: 0.82rem; font-weight: 700; background: #e0f2fe; color: var(--primary-dark);
+        }
+        .nav-bar {
+            position: fixed; bottom: 0; left: 0; right: 0; background: white;
+            display: flex; border-top: 1.5px solid #e2e8f0; z-index: 100;
+        }
+        .nav-item {
+            flex: 1; text-align: center; padding: 9px 2px; font-size: 0.92rem;
+            color: #64748b; cursor: pointer; font-weight: 700;
+        }
+        .nav-item.active { color: var(--primary); border-top: 3px solid var(--primary); background: #f0f9ff; }
+        .section { display: none; }
+        .section.active { display: block; }
+        .total-preview {
+            background: #ecfdf5; border: 1.5px solid #86efac; color: #065f46;
+            padding: 9px; border-radius: 8px; margin-top: 10px; text-align: center;
+            font-size: 1.15rem; font-weight: 700;
+        }
+        .rate-bar {
+            background: #fefce8; border: 1px solid #fde047; padding: 8px 10px;
+            border-radius: 8px; margin-bottom: 8px; font-size: 0.92rem;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+    </style>
+</head>
+<body>
+
+<!-- वेलकम प्रॉम्प्ट स्क्रीन -->
+<div id="welcome-overlay">
+    <div class="welcome-badge">स्वागत आहे • WELCOME</div>
+    <div class="owner-title">VISHNURAJ SHINDE</div>
+    <div class="dairy-sub">🐄 गणेश दुध संकलन केंद्र 🐃</div>
+
+    <div class="pasture-stage">
+        <div class="walking-herd">
+            <div class="animal-unit">
+                <span class="animal-icon">🐄</span>
+                <span class="animal-tag">गाय</span>
+            </div>
+            <div class="animal-unit buffalo">
+                <span class="animal-icon">🐃</span>
+                <span class="animal-tag">म्हैस</span>
+            </div>
+        </div>
+    </div>
+
+    <button class="enter-btn" onclick="closeWelcome()">पुढे चला ➔</button>
+</div>
+
+<!-- मुख्य हेडर -->
+<header>
+    <div class="header-wrap">
+        <div class="brand-box">
+            <div class="cattle-logo">
+                <span>🐄</span>
+                <span>🐃</span>
+            </div>
+            <div>
+                <h1>गणेश दुध</h1>
+                <p id="todayDate"></p>
+            </div>
+        </div>
+        <div style="text-align:right; font-size:0.78rem; font-weight:700; color:#fef08a;">
+            VISHNURAJ<br>SHINDE
+        </div>
+    </div>
+</header>
+
+<div class="container">
+    <!-- १. संकलन (Milk Entry) -->
+    <div id="sec-entry" class="section active">
+        <div class="stats-grid">
+            <div class="stat-box">
+                <h3>आजचे एकूण दूध</h3>
+                <p id="todayLiters">0.0 L</p>
+            </div>
+            <div class="stat-box" style="border-left-color: #16a34a;">
+                <h3>आजची एकूण रक्कम</h3>
+                <p id="todayAmount">₹0</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>नवीन दूध नोंद (COLLECTION)</h2>
+            <div class="rate-bar">
+                <span>⚙️ ऑटो दर सेटिंग (प्रति फॅट):</span>
+                <span>गाय: ₹<b id="dispCowRate">8.5</b> | म्हैस: ₹<b id="dispBufRate">9.5</b></span>
+            </div>
+
+            <div class="row">
+                <div>
+                    <label>तारीख (DATE)</label>
+                    <input type="date" id="entryDate">
+                </div>
+                <div>
+                    <label>वेळ (SHIFT)</label>
+                    <select id="shiftSelect">
+                        <option value="सकाळ">सकाळ (MORNING)</option>
+                        <option value="संध्याकाळ">संध्याकाळ (EVENING)</option>
+                    </select>
+                </div>
+            </div>
+
+            <label>शेतकरी निवडा</label>
+            <select id="farmerSelect" onchange="autoCalcRate()"></select>
+
+            <div class="row-3">
+                <div>
+                    <label>दूध (लिटर)</label>
+                    <input type="number" id="milkQty" step="0.1" placeholder="5.5" oninput="calcTotal()">
+                </div>
+                <div>
+                    <label>फॅट (FAT %)</label>
+                    <input type="number" id="milkFat" step="0.1" placeholder="4.2" oninput="autoCalcRate()">
+                </div>
+                <div>
+                    <label>दर (₹/लिटर)</label>
+                    <input type="number" id="milkRate" step="0.1" placeholder="38" oninput="calcTotal()">
+                </div>
+            </div>
+
+            <div class="total-preview" id="previewBox">एकूण रक्कम: ₹0.00</div>
+            <button onclick="saveEntry()">✅ दूध नोंद सेव्ह करा</button>
+        </div>
+
+        <div class="card">
+            <h2>निवडलेल्या तारखेच्या नोंदी</h2>
+            <div id="todayList"></div>
+        </div>
+    </div>
+
+    <!-- २. शेतकरी यादी (Farmers) -->
+    <div id="sec-farmers" class="section">
+        <div class="card">
+            <h2>नवीन शेतकरी जोडा</h2>
+            <label>शेतकऱ्याचे पूर्ण नाव</label>
+            <input type="text" id="fName" placeholder="उदा. संतोष पाटील">
+            <div class="row">
+                <div>
+                    <label>मोबाईल नंबर</label>
+                    <input type="tel" id="fPhone" placeholder="98XXXXXXXX">
+                </div>
+                <div>
+                    <label>प्रकार</label>
+                    <select id="fType">
+                        <option value="गाय">🐄 गाय (COW)</option>
+                        <option value="म्हैस">🐃 म्हैस (BUFFALO)</option>
+                    </select>
+                </div>
+            </div>
+            <button onclick="addFarmer()">शेतकरी सेव्ह करा</button>
+        </div>
+
+        <div class="card">
+            <h2>नोंदणीकृत शेतकरी</h2>
+            <div id="farmersList"></div>
+        </div>
+    </div>
+
+    <!-- ३. उचल व पशुखाद्य (Advance / Feed) -->
+    <div id="sec-advance" class="section">
+        <div class="card">
+            <h2>उचल / पशुखाद्य नोंद (ADVANCE)</h2>
+            <label>शेतकरी निवडा</label>
+            <select id="advFarmerSelect"></select>
+
+            <div class="row">
+                <div>
+                    <label>तपशील (REASON)</label>
+                    <select id="advReason">
+                        <option value="रोख उचल (Advance)">रोख उचल (ADVANCE)</option>
+                        <option value="पशुखाद्य / पेंड">पशुखाद्य / पेंड (FEED)</option>
+                        <option value="औषधोपचार">औषधोपचार (MEDICAL)</option>
+                    </select>
+                </div>
+                <div>
+                    <label>रक्कम (₹)</label>
+                    <input type="number" id="advAmount" placeholder="उदा. 500">
+                </div>
+            </div>
+            <button class="btn-warning" onclick="saveAdvance()">💸 उचल नोंद सेव्ह करा</button>
+        </div>
+
+        <div class="card">
+            <h2>अलीकडील उचल नोंदी</h2>
+            <div id="advanceList"></div>
+        </div>
+    </div>
+
+    <!-- ४. १० दिवसांचे बिल व रिपोर्ट (Billing & Reports) -->
+    <div id="sec-reports" class="section">
+        <div class="card">
+            <h2>१० दिवसांचे बिल / पगार तक्ता</h2>
+            <div class="row">
+                <div>
+                    <label>पासून (FROM)</label>
+                    <input type="date" id="billFrom" onchange="renderAll()">
+                </div>
+                <div>
+                    <label>पर्यंत (TO)</label>
+                    <input type="date" id="billTo" onchange="renderAll()">
+                </div>
+            </div>
+            <div id="summaryList" style="margin-top:10px;"></div>
+            <button class="btn-success" onclick="exportCSV()">📥 सर्व हिशोब EXCEL (CSV) डाउनलोड करा</button>
+        </div>
+
+        <div class="card">
+            <h2>⚙️ प्रति फॅट दर सेटिंग (RATE SETTINGS)</h2>
+            <div class="row">
+                <div>
+                    <label>गाय प्रति फॅट दर (₹)</label>
+                    <input type="number" id="cowFatRate" step="0.1" value="8.5">
+                </div>
+                <div>
+                    <label>म्हैस प्रति फॅट दर (₹)</label>
+                    <input type="number" id="bufFatRate" step="0.1" value="9.5">
+                </div>
+            </div>
+            <button class="btn-outline" onclick="saveRateSettings()">दर सेटिंग सेव्ह करा</button>
+        </div>
+    </div>
+</div>
+
+<div class="nav-bar">
+    <div class="nav-item active" onclick="switchTab('entry', this)">🥛 संकलन</div>
+    <div class="nav-item" onclick="switchTab('farmers', this)">👨‍🌾 शेतकरी</div>
+    <div class="nav-item" onclick="switchTab('advance', this)">💸 उचल</div>
+    <div class="nav-item" onclick="switchTab('reports', this)">📊 बिलिंग</div>
+</div>
+
+<script>
+    function closeWelcome() {
+        document.getElementById('welcome-overlay').classList.add('hidden');
+    }
+    setTimeout(closeWelcome, 4500);
+
+    let farmers = JSON.parse(localStorage.getItem('dairy_farmers')) || [
+        { id: 1, name: 'रमेश शिंदे', phone: '', type: 'गाय' }
+    ];
+    let entries = JSON.parse(localStorage.getItem('dairy_entries')) || [];
+    let advances = JSON.parse(localStorage.getItem('dairy_advances')) || [];
+    let rateConfig = JSON.parse(localStorage.getItem('dairy_rates')) || { cow: 8.5, buf: 9.5 };
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    document.getElementById('todayDate').innerText = 'तारीख: ' + new Date().toLocaleDateString('mr-IN');
+    document.getElementById('entryDate').value = todayStr;
+
+    // १० दिवसांच्या बिलाची बाय-डिफॉल्ट तारीख सेट करणे
+    const dNow = new Date();
+    const day = dNow.getDate();
+    const y = dNow.getFullYear();
+    const m = String(dNow.getMonth() + 1).padStart(2, '0');
+    if (day <= 10) {
+        document.getElementById('billFrom').value = `${y}-${m}-01`;
+        document.getElementById('billTo').value = `${y}-${m}-10`;
+    } else if (day <= 20) {
+        document.getElementById('billFrom').value = `${y}-${m}-11`;
+        document.getElementById('billTo').value = `${y}-${m}-20`;
+    } else {
+        document.getElementById('billFrom').value = `${y}-${m}-21`;
+        document.getElementById('billTo').value = todayStr;
+    }
+
+    document.getElementById('cowFatRate').value = rateConfig.cow;
+    document.getElementById('bufFatRate').value = rateConfig.buf;
+    document.getElementById('dispCowRate').innerText = rateConfig.cow;
+    document.getElementById('dispBufRate').innerText = rateConfig.buf;
+
+    function saveRateSettings() {
+        rateConfig.cow = parseFloat(document.getElementById('cowFatRate').value) || 8.5;
+        rateConfig.buf = parseFloat(document.getElementById('bufFatRate').value) || 9.5;
+        localStorage.setItem('dairy_rates', JSON.stringify(rateConfig));
+        document.getElementById('dispCowRate').innerText = rateConfig.cow;
+        document.getElementById('dispBufRate').innerText = rateConfig.buf;
+        alert('प्रति फॅट दर सेव्ह झाले!');
+    }
+
+    function switchTab(tab, el) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.getElementById('sec-' + tab).classList.add('active');
+        el.classList.add('active');
+        renderAll();
+    }
+
+    function autoCalcRate() {
+        const farmerId = document.getElementById('farmerSelect').value;
+        const farmer = farmers.find(f => f.id == farmerId);
+        const fat = parseFloat(document.getElementById('milkFat').value) || 0;
+        if (farmer && fat > 0) {
+            const perFat = farmer.type === 'गाय' ? rateConfig.cow : rateConfig.buf;
+            const autoRate = (fat * perFat).toFixed(2);
+            document.getElementById('milkRate').value = autoRate;
+        }
+        calcTotal();
+    }
+
+    function calcTotal() {
+        const qty = parseFloat(document.getElementById('milkQty').value) || 0;
+        const rate = parseFloat(document.getElementById('milkRate').value) || 0;
+        const total = (qty * rate).toFixed(2);
+        document.getElementById('previewBox').innerText = `एकूण रक्कम: ₹${total}`;
+    }
+
+    function addFarmer() {
+        const name = document.getElementById('fName').value.trim();
+        const phone = document.getElementById('fPhone').value.trim();
+        const type = document.getElementById('fType').value;
+        if (!name) return alert('कृपया शेतकऱ्याचे नाव टाका!');
+        farmers.push({ id: Date.now(), name, phone, type });
+        localStorage.setItem('dairy_farmers', JSON.stringify(farmers));
+        document.getElementById('fName').value = '';
+        document.getElementById('fPhone').value = '';
+        alert('शेतकरी यशस्वीरित्या जोडला गेला!');
+        renderAll();
+    }
+
+    function saveEntry() {
+        const dateVal = document.getElementById('entryDate').value || todayStr;
+        const farmerId = document.getElementById('farmerSelect').value;
+        const farmer = farmers.find(f => f.id == farmerId);
+        const shift = document.getElementById('shiftSelect').value;
+        const qty = parseFloat(document.getElementById('milkQty').value);
+        const fat = parseFloat(document.getElementById('milkFat').value) || 0;
+        const rate = parseFloat(document.getElementById('milkRate').value);
+
+        if (!farmer || !qty || !rate) return alert('कृपया सर्व माहिती योग्य भरा!');
+
+        const amount = parseFloat((qty * rate).toFixed(2));
+        entries.unshift({
+            id: Date.now(), date: dateVal, farmerId: farmer.id,
+            farmerName: farmer.name, phone: farmer.phone, shift, qty, fat, rate, amount
+        });
+        localStorage.setItem('dairy_entries', JSON.stringify(entries));
+        document.getElementById('milkQty').value = '';
+        document.getElementById('milkFat').value = '';
+        calcTotal();
+        renderAll();
+    }
+
+    function deleteEntry(id) {
+        if (confirm('ही नोंद कायमची डिलीट करायची का?')) {
+            entries = entries.filter(e => e.id !== id);
+            localStorage.setItem('dairy_entries', JSON.stringify(entries));
+            renderAll();
+        }
+    }
+
+    function saveAdvance() {
+        const farmerId = document.getElementById('advFarmerSelect').value;
+        const farmer = farmers.find(f => f.id == farmerId);
+        const reason = document.getElementById('advReason').value;
+        const amount = parseFloat(document.getElementById('advAmount').value);
+        if (!farmer || !amount) return alert('कृपया शेतकरी आणि रक्कम भरा!');
+
+        advances.unshift({
+            id: Date.now(), date: todayStr, farmerId: farmer.id,
+            farmerName: farmer.name, reason, amount
+        });
+        localStorage.setItem('dairy_advances', JSON.stringify(advances));
+        document.getElementById('advAmount').value = '';
+        alert('उचल नोंद सेव्ह झाली!');
+        renderAll();
+    }
+
+    function sendWhatsApp(entry) {
+        const msg = `*🐄 गणेश दुध संकलन पावती 🐃*\nतारीख: ${entry.date} (${entry.shift})\nशेतकरी: ${entry.farmerName}\nदूध: ${entry.qty} लिटर | फॅट: ${entry.fat}%\nदर: ₹${entry.rate}\n*एकूण रक्कम: ₹${entry.amount}*`;
+        const url = entry.phone
+            ? `https://wa.me/91${entry.phone}?text=${encodeURIComponent(msg)}`
+            : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+        window.open(url, '_blank');
+    }
+
+    function sendBillWhatsApp(name, phone, from, to, liters, gross, adv, net) {
+        const msg = `*🐄 गणेश दुध - पगार बिल पावती 🐃*\nकालावधी: ${from} ते ${to}\nशेतकरी: ${name}\nएकूण दूध: ${liters.toFixed(1)} लिटर\nएकूण दुधाचे पैसे: ₹${gross.toFixed(2)}\nउचल / कपात: -₹${adv.toFixed(2)}\n*निव्वळ देय रक्कम: ₹${net.toFixed(2)}*`;
+        const url = phone
+            ? `https://wa.me/91${phone}?text=${encodeURIComponent(msg)}`
+            : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+        window.open(url, '_blank');
+    }
+
+    function renderAll() {
+        const optionsHtml = farmers.map(f => `<option value="${f.id}">${f.name} (${f.type === 'गाय' ? '🐄 गाय' : '🐃 म्हैस'})</option>`).join('');
+        document.getElementById('farmerSelect').innerHTML = optionsHtml;
+        document.getElementById('advFarmerSelect').innerHTML = optionsHtml;
+
+        document.getElementById('farmersList').innerHTML = farmers.map(f => `
+            <div class="list-item">
+                <div><strong>${f.name}</strong><br><small style="color:#64748b;">${f.phone || 'नंबर नाही'}</small></div>
+                <span class="badge">${f.type === 'गाय' ? '🐄 गाय' : '🐃 म्हैस'}</span>
+            </div>
+        `).join('');
+
+        const selDate = document.getElementById('entryDate').value || todayStr;
+        const todayEntries = entries.filter(e => e.date === selDate);
+        let tLiters = 0, tAmt = 0;
+        todayEntries.forEach(e => { tLiters += e.qty; tAmt += e.amount; });
+        document.getElementById('todayLiters').innerText = tLiters.toFixed(1) + ' L';
+        document.getElementById('todayAmount').innerText = '₹' + tAmt.toFixed(0);
+
+        document.getElementById('todayList').innerHTML = todayEntries.length ? todayEntries.map(e => `
+            <div class="list-item">
+                <div>
+                    <strong>${e.farmerName}</strong> <span class="badge">${e.shift}</span><br>
+                    <small>${e.qty} L × ₹${e.rate} (FAT: ${e.fat}%)</small>
+                </div>
+                <div style="text-align:right;">
+                    <strong style="color:#16a34a; font-size:1.1rem;">₹${e.amount}</strong><br>
+                    <button class="btn-outline btn-sm" onclick='sendWhatsApp(${JSON.stringify(e)})'>WA</button>
+                    <button class="btn-danger btn-sm" onclick="deleteEntry(${e.id})">✕</button>
+                </div>
+            </div>
+        `).join('') : '<p style="color:#64748b;">या तारखेला कोणतीही नोंद नाही.</p>';
+
+        // उचल यादी
+        document.getElementById('advanceList').innerHTML = advances.length ? advances.slice(0, 15).map(a => `
+            <div class="list-item">
+                <div><strong>${a.farmerName}</strong><br><small>${a.date} • ${a.reason}</small></div>
+                <strong style="color:#d97706;">₹${a.amount}</strong>
+            </div>
+        `).join('') : '<p style="color:#64748b;">कोणतीही उचल नोंद नाही.</p>';
+
+        // १० दिवसांचे बिलिंग रिपोर्ट
+        const bFrom = document.getElementById('billFrom').value;
+        const bTo = document.getElementById('billTo').value;
+        const summary = {};
+
+        entries.filter(e => (!bFrom || e.date >= bFrom) && (!bTo || e.date <= bTo)).forEach(e => {
+            if (!summary[e.farmerName]) summary[e.farmerName] = { qty: 0, gross: 0, adv: 0, phone: e.phone };
+            summary[e.farmerName].qty += e.qty;
+            summary[e.farmerName].gross += e.amount;
+        });
+
+        advances.filter(a => (!bFrom || a.date >= bFrom) && (!bTo || a.date <= bTo)).forEach(a => {
+            if (!summary[a.farmerName]) summary[a.farmerName] = { qty: 0, gross: 0, adv: 0, phone: '' };
+            summary[a.farmerName].adv += a.amount;
+        });
+
+        document.getElementById('summaryList').innerHTML = Object.keys(summary).length ? Object.entries(summary).map(([name, d]) => {
+            const net = d.gross - d.adv;
+            return `
+            <div class="list-item">
+                <div>
+                    <strong>${name}</strong><br>
+                    <small>दूध: ${d.qty.toFixed(1)} L | एकूण: ₹${d.gross.toFixed(0)} | उचल: -₹${d.adv.toFixed(0)}</small>
+                </div>
+                <div style="text-align:right;">
+                    <strong style="color:#0284c7; font-size:1.15rem;">₹${net.toFixed(2)}</strong><br>
+                    <button class="btn-outline btn-sm" onclick="sendBillWhatsApp('${name}','${d.phone}','${bFrom}','${bTo}',${d.qty},${d.gross},${d.adv},${net})">बिल WA</button>
+                </div>
+            </div>`;
+        }).join('') : '<p style="color:#64748b;">या कालावधीत डेटा उपलब्ध नाही.</p>';
+    }
+
+    function exportCSV() {
+        let csv = "Date,Farmer,Shift,Liters,Fat,Rate,Amount\n";
+        entries.forEach(e => {
+            csv += `${e.date},${e.farmerName},${e.shift},${e.qty},${e.fat},${e.rate},${e.amount}\n`;
+        });
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `Ganesh_Dudh_Report_${todayStr}.csv`;
+        a.click();
+    }
+
+    renderAll();
+</script>
+</body>
+</html>
